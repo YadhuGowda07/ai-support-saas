@@ -21,7 +21,6 @@ public class AiChatController {
         String question = request.get("question");
         Long tenantId = Long.parseLong(request.get("tenantId"));
 
-        String answer = aiChatService.chat(question, tenantId);
-        return ResponseEntity.ok(Map.of("answer", answer));
+        return ResponseEntity.ok(aiChatService.chat(question, tenantId));
     }
 }
