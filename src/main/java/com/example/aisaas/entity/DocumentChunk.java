@@ -2,6 +2,8 @@ package com.example.aisaas.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "document_chunks")
@@ -21,6 +23,10 @@ public class DocumentChunk {
 
     @Column(nullable = false)
     private Integer chunkIndex;
+
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(columnDefinition = "float8[]")
+    private double[] embedding;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id", nullable = false)

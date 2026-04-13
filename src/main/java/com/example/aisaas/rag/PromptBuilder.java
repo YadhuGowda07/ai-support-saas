@@ -1,0 +1,29 @@
+package com.example.aisaas.rag;
+
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+@Component
+public class PromptBuilder {
+
+    public String build(String question, List<String> contextChunks) {
+        StringBuilder context = new StringBuilder();
+        for (String chunk : contextChunks) {
+            context.append(chunk).append("\n\n");
+        }
+
+        return """
+                You are a helpful customer support assistant.
+                Answer the question using ONLY the context provided below.
+                If the answer is not in the context, say "I don't have enough information to answer that question."
+                
+                Context:
+                """ + context + """
+                
+                Question: """ + question + """
+                
+                Answer:
+                """;
+    }
+}
