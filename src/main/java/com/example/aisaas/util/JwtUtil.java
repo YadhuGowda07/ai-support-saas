@@ -1,5 +1,6 @@
 package com.example.aisaas.util;
 
+import com.example.aisaas.enums.Role;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -8,6 +9,8 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class JwtUtil {
@@ -22,24 +25,39 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateToken(String email, String role) {
+    // ✅ GENERATE TOKEN (FIXED)
+    public String generateToken(String email, Role role, Long tenantId) {
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", role.name());
+        claims.put("tenantId", tenantId);
+
         return Jwts.builder()
-                .subject(email)
-                .claim("role", role)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .claims(claims) // ✅ replaces setClaims
+                .subject(email) // ✅ replaces setSubject
+                .issuedAt(new Date()) // ✅ replaces setIssuedAt
+                .expiration(new Date(System.currentTimeMillis() + expiration)) // ✅ replaces setExpiration
                 .signWith(getSigningKey())
                 .compact();
     }
 
+    // ✅ EXTRACT TENANT ID
+    public Long extractTenantId(String token) {
+        Claims claims = getClaims(token);
+        return claims.get("tenantId", Long.class);
+    }
+
+    // ✅ EXTRACT EMAIL
     public String extractEmail(String token) {
         return getClaims(token).getSubject();
     }
 
+    // ✅ EXTRACT ROLE
     public String extractRole(String token) {
         return getClaims(token).get("role", String.class);
     }
 
+    // ✅ VALIDATE TOKEN
     public boolean isTokenValid(String token) {
         try {
             getClaims(token);
@@ -49,6 +67,7 @@ public class JwtUtil {
         }
     }
 
+    // ✅ CORE METHOD (THIS WAS MISSING)
     private Claims getClaims(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())

@@ -4,6 +4,7 @@ import com.example.aisaas.dto.AuthRequest;
 import com.example.aisaas.dto.AuthResponse;
 import com.example.aisaas.entity.Tenant;
 import com.example.aisaas.entity.User;
+import com.example.aisaas.enums.Role;
 import com.example.aisaas.repository.TenantRepository;
 import com.example.aisaas.repository.UserRepository;
 import com.example.aisaas.util.JwtUtil;
@@ -24,18 +25,20 @@ public class AuthService {
         Tenant tenant = tenantRepository.findById(request.getTenantId())
                 .orElseThrow(() -> new RuntimeException("Tenant not found"));
 
+        Role role = request.getRole() != null ? Role.valueOf(request.getRole()) : Role.USER;
+
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole() != null ? request.getRole() : "USER")
+                .role(role)
                 .tenant(tenant)
                 .build();
 
         userRepository.save(user);
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
-        return new AuthResponse(token, user.getEmail(), user.getRole());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole(),user.getTenant().getId());
+        return new AuthResponse(token, user.getEmail(), user.getRole().name());
     }
 
     public AuthResponse login(AuthRequest request) {
@@ -46,7 +49,11 @@ public class AuthService {
             throw new RuntimeException("Invalid password");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
-        return new AuthResponse(token, user.getEmail(), user.getRole());
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRole(),
+                user.getTenant().getId());
+
+        return new AuthResponse(token, user.getEmail(), user.getRole().name());
     }
 }
